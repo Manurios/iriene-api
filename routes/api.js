@@ -11,7 +11,8 @@ var farhan = db.get("farhan");
 var creatorList = ['@_farhan_xcode7','@pinepelbanana'];
 var creator = creatorList[Math.floor(Math.random() * creatorList.length)];
 
-
+var fs = require('fs')
+var ytb = require('../lib/yt');
 var ytdl = require('ytdl-core');
 var ytpl = require('ytpl');
 var secure = require('ssl-express-www');
@@ -155,7 +156,6 @@ var len = 15
 
         var randomTextNumber = random+randomlagi+'---------FarhanGans'+'FARHAN--GANS';
         
- 
  async function cekApiKey(api) {
  	ap = await farhan.findOne({apikey:api})
  return ap;
@@ -288,7 +288,21 @@ router.get('/remove', (req, res, next) => {
         res.json(loghandler.error)
     }
 })
+module.exports.ytaudio = function ytaudio(url) {
+	return new Promise((resolve, reject) => {
+		ytb.yta(url)
+		.then(resolve)
+		.catch(reject)
+	})
+}
 
+module.exports.ytvideo = function ytsearch(url) {
+	return new Promise((resolve, reject) => {
+		ytb.ytv(url)
+		.then(resolve)
+		.catch(reject)
+	})
+}
 router.get('/tiktod', async (req, res, next) => {
     var apikeyInput = req.query.apikey,
         url = req.query.url
@@ -344,16 +358,19 @@ router.get('/randomquote', async (req, res, next) => {
 	if(!apikeyInput) return res.json(loghandler.notparam)
 	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
 
-       fetch(encodeURI(`https://python-api-zhirrr.herokuapp.com/api/random/quotes`))
+       var Q = JSON.parse(fs.readFileSync('quotes.json'))
         .then(response => response.json())
         .then(data => {
-        var result = data;
+        var autor = data.Q.author;
+        var qoute = data.Q.quotes;
              res.json({
                  creator : `${creator}`,
-                 result
+                 author : `${author}`,
+                 quote : `${qoute}`
              })
          })
          .catch(e => {
+           console.log(e)
          	res.json(loghandler.error)
 })
 })
@@ -383,6 +400,28 @@ router.get('/infonpm', async (req, res, next) => {
 })
 })
 
+router.get('/cek_ip', async (req, res, next) => {
+        var apikeyInput = req.query.apikey,
+            ip = req.query.ip
+            
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+    if (!ip) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter ip"})
+
+       fetch(encodeURI(`https://cek-ip-zhirrr.vercel.app/api/cek?ip=${ip}`))
+        .then(response => response.json())
+        .then(data => {
+        var result = data;
+             res.json({
+                 status : true,
+                 creator : `${creator}`,
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
 
 router.get('/short/tiny', async (req, res, next) => {
     var apikeyInput = req.query.apikey,
@@ -699,21 +738,16 @@ router.get('/textmaker/senja', async (req, res, next) => {
                         $ = cheerio.load(b)
                         $(".thumbnail").find("img").each(function() {
                             h = $(this).attr("src")
+                            var result = "https://photooxy.com/"+h 
                             var result = "https://photooxy.com/"+h
                             fetch(encodeURI(`https://api.imgbb.com/1/upload?expiration=120&key=761ea2d5575581057a799d14e9c78e28&image=${result}&name=${randomTextNumber}`))
-                                .then(response => response.json())
+                              .then(response => response.json())
                                 .then(data => {
-                                    var urlnya = data.data.url,
-                                        delete_url = data.data.delete_url;
+                                    var urlnya = data.data.url;
                                         res.json({
                                             status : true,
                                             creator : `${creator}`,
-                                            message : `jangan lupa follow ${creator}`,
-                                            result:{
-                                                url:urlnya,
-                                                delete_url: delete_url,
-                                                info: 'url akan hilang setelah 2 menit'
-                                            }
+                                            result: `${urlnya}`
                                         })
                                 })
                         })
@@ -1450,7 +1484,7 @@ router.get('/drakorasia', async (req, res, next) => {
 	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
         if(!search) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter search"})
 
-       fetch(encodeURI(`http://api-irienee.herokuapp.com/api/drakorasia?search=${search}`))
+       fetch(encodeURI(`https://docs-api-zahirr.herokuapp.com/api/drakorasia?search=${search}&apikey=zahirgans`))
         .then(response => response.json())
         .then(data => {
         var result = data;
@@ -1685,7 +1719,7 @@ router.get('/cuaca', async (req, res, next) => {
 	if(!apikeyInput) return res.json(loghandler.notparam)
 	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
 	if(!kabupaten) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter kabupaten"})
-       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/cuaca?kabupaten=${kabupaten}`))
+       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/cuaca?kabupaten=${kabupaten}&apikey=irieneCans`))
         .then(response => response.json())
         .then(data => {
         var result = data;
@@ -1746,7 +1780,7 @@ router.get('/translate', async (req, res, next) => {
 	if(!apikeyInput) return res.json(loghandler.notparam)
 	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
 	if(!kata) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter kata"})
-       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/translate?text=${kata}`))
+       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/translate?kata=${kata}&apikey=irieneCans`))
         .then(response => response.json())
         .then(data => {
         var result = data;
@@ -1828,7 +1862,7 @@ router.get('/random/wallpaper', async (req, res, next) => {
 	if(!apikeyInput) return res.json(loghandler.notparam)
 	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
 
-       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/random/wallpaper?genre=acak`))
+       fetch(encodeURI(`https://api-irienee.herokuapp.com/api/random/wallpaper?genre=acak&apikey=irieneCans`))
         .then(response => response.json())
         .then(data => {
         var result = data;
@@ -1840,23 +1874,105 @@ router.get('/random/wallpaper', async (req, res, next) => {
          	res.json(loghandler.error)
 })
 })
-// router.get('/api/randomquotes', async (req, res, next) => {
-// var apikeyInput = req.query.apikey
-// if(!apikeyInput) return res.json(loghandler.notparam)
-// if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
-// 
-	// var quotes = json.loads(open('./quotes.json').read())
-	// var result = quotes[Math.Random(Math.Floor() * quotes.length)];
-	// .then(response => response.json())
-        // .then(data => {
-        // var result = data;
-             // res.json({
-                 // result
-             // })
-         // })
-         // .catch(e => {
-         	// res.json(loghandler.error)
-// })
-// }
+
+router.get('/infogithub', async (req, res, next) => {
+        var apikeyInput = req.query.apikey
+        search = req.query.search
+
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+	if(!search) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter search"})
+
+       fetch(encodeURI(`https://github-api.zhirrr.repl.co/api/detailuser?q=${search}`))
+        .then(response => response.json())
+        .then(user => {
+        var result = user;
+             res.json({
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
+
+router.get('/gempa_terkini', async (req, res, next) => {
+        var apikeyInput = req.query.apikey
+
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+
+       fetch(encodeURI(`https://bmkg-api.zhirrr.repl.co/api/gempa/terkini`))
+        .then(response => response.json())
+        .then(gempa_terkini => {
+        var result = gempa_terkini;
+             res.json({
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
+
+router.get('/inforepository', async (req, res, next) => {
+        var apikeyInput = req.query.apikey
+        q = req.query.q
+
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+	if(!q) return res.json({ status : false, creator : `${creator}`, message : "masukan parameter q"})
+
+       fetch(encodeURI(`https://github-api.zhirrr.repl.co/api/searchrepo?q=${q}`))
+        .then(response => response.json())
+        .then(items => {
+        var result = items;
+             res.json({
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
+
+router.get('/kuis/caklontong', async (req, res, next) => {
+        var apikeyInput = req.query.apikey
+
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+
+       fetch(encodeURI(`https://docs-api-zahirrr.herokuapp.com/api/quote?type=caklontong`))
+        .then(response => response.json())
+        .then(data => {
+        var result = data;
+             res.json({
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
+
+
+router.get('/kuis/tebakgambar', async (req, res, next) => {
+        var apikeyInput = req.query.apikey
+
+	if(!apikeyInput) return res.json(loghandler.notparam)
+	if(apikeyInput != 'irieneCans') return res.json(loghandler.invalidKey)
+
+       fetch(encodeURI(`https://docs-api-zahirrr.herokuapp.com/api/quote?type=tebakgambar`))
+        .then(response => response.json())
+        .then(data => {
+        var result = data;
+             res.json({
+                 result
+             })
+         })
+         .catch(e => {
+         	res.json(loghandler.error)
+})
+})
 
 module.exports = router
